@@ -34,7 +34,7 @@
                 $_SESSION['login_user']=$username;
                 header("location: profile.php");
             } else {
-                $error = "Podana nazwa użytkownika lub hasło nieprawidłowe.";
+                $error = "Podana nazwa użytkownika lub hasło jest nieprawidłowe.";
             }
 
             mysql_close($connection); // Closing Connection

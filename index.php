@@ -5,28 +5,21 @@
     {
         header("location: profile.php");
     }
+    include('header.html');
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Zaloguj się</title>
-    <link href="style.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-<div id="main">
-    <div id="login">
-        <h2>Login Form</h2>
-        <form action="" method="post">
-            <label>UserName :</label>
-            <input maxlength="20" id="name" name="username" placeholder=" login" type="text">
-            <label>Password :</label>
-            <input maxlength="20" id="password" name="password" placeholder=" **********" type="password">
-            <input name="submit" type="submit" value=" Login ">
-            <span><?php echo $error; ?></span>
+    <div class="login">
+        <h1>Login</h1>
+        <p style="color: red; font-size: 80%;text-align:center;"><?php echo $error; ?></p>
+        <form method="post" action="">
+            <input type="text" name="username" placeholder="Username" required="required" />
+            <input type="password" name="password" placeholder="Password" required="required" />
+            <input type="submit" name="submit" class="btn btn-primary btn-block btn-large" value="Zaloguj się"  />
         </form>
+        <p class="forgot-password"><a href="register.php">Zarejestruj się!</a>
+        </p>
     </div>
-    <p><a href="register.php">Zarejestruj się</a></p>
-</div>
-</body>
-</html>
+
+
+<?php
+    include('bottom.html');

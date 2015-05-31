@@ -5,29 +5,20 @@ if(isset($_SESSION['login_user']))
 {
     header("location: profile.php");
 }
+
+include('header.html');
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Zarejestruj się</title>
-    <link href="style.css" rel="stylesheet" type="text/css">
-</head>
-<body>
-<div id="main">
-    <div id="login">
-        <h2>Registration form</h2>
-        <form action="" method="post">
-            <label>Nazwa użytkownika :</label>
-            <input maxlength="20" id="name" name="username" placeholder=" login" type="text">
-            <label>Hasło :</label>
-            <input maxlength="20" id="password1" name="password1" placeholder=" **********" type="password">
-            <label>Powtórz hasło:</label>
-            <input maxlength="20"id="password2" name="password2" placeholder=" **********" type="password">
-            <input name="submit" type="submit" value=" Zarejestruj ">
-            <span><?php echo $error; ?></span>
-        </form>
-    </div>
+<div class="login">
+    <h1>Rejestracja</h1>
+    <p style="color: red; font-size: 80%;text-align:center;"><?php echo $error; ?></p>
+    <form method="post" action="">
+        <input type="text" name="username" placeholder="Username" required="required" />
+        <input type="password" name="password1" placeholder="Password" required="required" />
+        <input type="password" name="password2" placeholder="Retype password" required="required" />
+        <input type="submit" name="submit" class="btn btn-primary btn-block btn-large" value="Zarejestruj"  />
+    </form>
 </div>
-</body>
-</html>
+
+<?php
+include('bottom.html');
