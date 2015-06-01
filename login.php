@@ -1,42 +1,35 @@
 <?php
     session_start();
 
-    include("mysql_connect.php");
+    include_once("tools.php");
+
     $error='';
 
     if (isset($_POST['submit'])) {
-        if (empty($_POST['username']) || empty($_POST['password'])) {
-            $error = "Nieprawidłowe hasło lub nazwa użytkownika.";
-        }
-        elseif(strlen($_POST['username']) < 5 || strlen($_POST['password']) < 5 || strlen($_POST['username']) > 20 || strlen($_POST['username']) > 20) {
-            $error = "Nieprawidłowe hasło lub nazwa użytkownika.";
-        }
-        else
-        {
-            $username=$_POST['username'];
-            $password=$_POST['password'];
 
-            $username = stripslashes($username);
-            $password = stripslashes($password);
-            $username = mysql_real_escape_string($username);
-            $password = mysql_real_escape_string($password);
+        try {
+            $userData = new UserData();
+            $database = new Database();
 
+            $nickname = $_POST['username'];
+            $password = $_POST['password'];
+            $userData->validateInputData($nickname);
+            $userData->validateInputData($password);
 
-            $query = mysql_query("select salt from users where nickname='$username'", $connection);
-            $row = mysql_fetch_array($query,MYSQL_ASSOC);
+            $userData->setNickname($nickname);
+            $userData->setPassword($password);
 
-            $hash = hash('sha512', $password+""+$row['salt']);
-            $query = mysql_query("select 1 from users where nickname='$username' AND password='$hash'", $connection);
-            $nums = mysql_num_rows($query);
+            $userData->setSalt($database->getSalt($nickname));
 
-            if( $nums == 1) {
-                mysql_close($connection);
-                $_SESSION['login_user']=$username;
-                header("location: profile.php");
-            } else {
-                $error = "Podana nazwa użytkownika lub hasło jest nieprawidłowe.";
-            }
+            $userData->finalizeLoginData();
+            $user_id = $database->userAuthentication($userData->getNickname(), $userData->getHash());
 
-            mysql_close($connection); // Closing Connection
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['nickname'] = $userData->getNickname();
+            header("location: profile.php");
+
+        } catch( Exception $e ) {
+            //$error = $e->getMessage();
+            $error = $e;
         }
     }

@@ -8,7 +8,7 @@
 //    $row = mysql_fetch_assoc($ses_sql);
 //    $login_session =$row['nickname'];
 
-    if(!isset($_SESSION['login_user'])){
+    if(!isset($_SESSION['user_id'])){
         mysql_close($connection); // Closing Connection
         header('Location: index.php'); // Redirecting To Home Page
     }

@@ -26,30 +26,36 @@
 
             $salt = openssl_random_pseudo_bytes(128);
             $salt = bin2hex($salt);
-            $password .= $salt;
-            $hash = hash('sha512', $password);
+            $hash = hash('sha512', $password.$salt);
             return array($hash, $salt);
         }
 
         //Function validate data from HTML form
-        protected function validateInputData(&$data) {
+        public function validateInputData(&$data) {
             $data = trim($data);
             $data = stripslashes($data);
             $data = htmlspecialchars($data);
         }
 
-        protected function validateEmail($email) {
+        protected function validateEmail(&$email) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 throw new Exception("Wrong email format!");
             }
         }
 
-        protected function validateNickname($nickname) {
+        protected function validateNickname(&$nickname) {
             $regex  = '/[^a-zA-Z0-9_-]|admin|root|administrator/';
 
             if (preg_match($regex, $nickname)) {
                 throw new Exception("Nickname format is wrong, retype your nickname again!");
             }
+        }
+
+        protected function hashPassword($form_password, $salt) {
+
+            $hash = hash('sha512', $form_password.$salt);
+            print $form_password;
+            return $hash;
         }
     }
 
@@ -90,6 +96,28 @@
         {
             $this->email = $email;
         }
+
+        public function getHash()
+        {
+            return $this->hash;
+        }
+
+        public function setHash($hash)
+        {
+            $this->hash = $hash;
+        }
+
+        public function getSalt()
+        {
+            return $this->salt;
+        }
+
+        public function setSalt($salt)
+        {
+            $this->salt = $salt;
+        }
+
+
     }
 
     class UserData extends User {
@@ -135,6 +163,16 @@
             return $array;
         }
 
+        public function finalizeLoginData() {
+
+            if( empty($this->nickname) or empty($this->password) )
+                throw new Exception("Wrong nickname or password!");
+
+            $this->validateNickname($this->nickname);
+
+            $this->hash = $this->hashPassword($this->password, $this->salt);
+        }
+
     }
 
     class Database {
@@ -165,7 +203,7 @@
             if( self::isUserExist($nickname) )
                 throw new Exception("Type another nickname, this one is already in use!");
 
-            $query = "INSERT INTO users (nickname, email, salt, password) VALUES ('$nickname', '$email', '$password', '$salt')";
+            $query = "INSERT INTO users (nickname, email, salt, password) VALUES ('$nickname', '$email', '$salt', '$password')";
 
             $result = $this->db->query($query);
 
@@ -194,5 +232,42 @@
                 return false;
             }
             return true;
+        }
+
+        public function userAuthentication($nickname, $hash) {
+
+            self::connect();
+            $query = "SELECT user_id FROM users WHERE nickname='$nickname' and password='$hash'";
+            $result = $this->db->query($query);
+
+            if( $result->num_rows == 0) {
+                self::disconnect();
+                throw new Exception("Wrong username or password!");
+            }
+
+            $row = $result->fetch_assoc();
+            $user_id = $row['user_id'];
+
+            self::disconnect();
+            return $user_id;
+        }
+
+        public function getSalt($nickname) {
+
+            self::connect();
+
+            $query = "SELECT salt FROM users WHERE nickname='$nickname'";
+            $result = $this->db->query($query);
+
+            if( $result->num_rows == 0 ) {
+                self::disconnect();
+                throw new Exception("Wrong username or password!");
+            }
+
+            $row = $result->fetch_assoc();
+            $salt = $row['salt'];
+            self::disconnect();
+
+            return $salt;
         }
     }

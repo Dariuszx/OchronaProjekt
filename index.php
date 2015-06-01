@@ -1,7 +1,7 @@
 <?php
     include('login.php');
 
-    if(isset($_SESSION['login_user']))
+    if(isset($_SESSION['user_id']))
     {
         header("location: profile.php");
     }

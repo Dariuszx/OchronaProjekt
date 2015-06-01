@@ -10,7 +10,7 @@ if (isset($_POST['submit'])) {
     try {
 
         if( $_POST['password1'] != $_POST['password2'])
-            throw new Exception("Password are not the same!");
+            throw new Exception("Passwords are not the same!");
 
         $database = new Database();
         $userData = new UserData();
@@ -23,13 +23,12 @@ if (isset($_POST['submit'])) {
 
         $user_id = $database->insertUser($validatedData);
 
-
-        $_SESSION['nickname'] = $username;
+        $_SESSION['nickname'] = $userData->getNickname();
         $_SESSION['user_id'] = $user_id;
-        header("location: profile.php");
+        //header("location: profile.php");
 
     } catch(Exception $e) {
-        $error = $e;
+        $error = $e->getMessage();
     }
 
 }

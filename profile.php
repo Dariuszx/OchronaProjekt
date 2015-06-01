@@ -1,7 +1,7 @@
-
 <?php
-include('session.php');
+    include('session.php');
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,7 +10,7 @@ include('session.php');
 </head>
 <body>
 <div id="profile">
-    <b id="welcome">Welcome : <i><?php echo $_SESSION['login_user']; ?></i></b>
+    <b id="welcome">Welcome : <i><?php echo $_SESSION['nickname']; ?></i></b>
     <b id="logout"><a href="logout.php">Log Out</a></b>
 </div>
 </body>
