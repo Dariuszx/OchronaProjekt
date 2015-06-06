@@ -1,13 +1,5 @@
 <?php
 
-$password = "poziom9";
-$salt = "eec2cdda742ef7dd2b9167f40c6f7ce7592082e85efc2269777123c6153a37219f2e62c0eb62214481938e02ed0e981af732d8552866b39f5b0c50e5c61a93df";
-
-echo hash('sha512', "poziom9"."eec2cdda742ef7dd2b9167f40c6f7ce7592082e85efc2269777123c6153a37219f2e62c0eb62214481938e02ed0e981af732d8552866b39f5b0c50e5c61a93df");
-
-
-//echo hash('sha5
-//12', 'poziom9eec2cdda742ef7dd2b9167f40c6f7ce7592082e85efc2269777123c6153a37219f2e62c0eb62214481938e02ed0e981af732d8552866b39f5b0c50e5c61a93df');
-
-//form - 706f7a696f6d39
-//asd  - 706f7a696f6d39
+foreach( $_SERVER as $key => $value) {
+    print $key." => ".$value."<br />";
+}

@@ -25,7 +25,8 @@ if (isset($_POST['submit'])) {
 
         $_SESSION['nickname'] = $userData->getNickname();
         $_SESSION['user_id'] = $user_id;
-        //header("location: profile.php");
+
+        header("location: profile.php");
 
     } catch(Exception $e) {
         $error = $e->getMessage();

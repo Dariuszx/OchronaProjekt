@@ -22,14 +22,16 @@
             $userData->setSalt($database->getSalt($nickname));
 
             $userData->finalizeLoginData();
-            $user_id = $database->userAuthentication($userData->getNickname(), $userData->getHash());
+
+            $userAccount = new UserAccount();
+            $user_id = $userAccount->logIn($userData->getNickname(),$userData->getHash());
 
             $_SESSION['user_id'] = $user_id;
             $_SESSION['nickname'] = $userData->getNickname();
             header("location: profile.php");
 
         } catch( Exception $e ) {
-            //$error = $e->getMessage();
-            $error = $e;
+            $error = $e->getMessage(); //production
+            //$error = $e; //dev
         }
     }

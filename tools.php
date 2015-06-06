@@ -24,7 +24,7 @@
         //Function returns hash and salt from password
         protected function saltPassword($password) {
 
-            $salt = openssl_random_pseudo_bytes(128);
+            $salt = openssl_random_pseudo_bytes(64);
             $salt = bin2hex($salt);
             $hash = hash('sha512', $password.$salt);
             return array($hash, $salt);
@@ -54,7 +54,6 @@
         protected function hashPassword($form_password, $salt) {
 
             $hash = hash('sha512', $form_password.$salt);
-            print $form_password;
             return $hash;
         }
     }
@@ -179,7 +178,12 @@
 
         private $db;
 
-        private function connect() {
+        public function getDb()
+        {
+            return $this->db;
+        }
+
+        public function connect() {
             $this->db = new mysqli('localhost', 'dybkad', 'poziom9', 'dybkad_baza');
 
             if (mysqli_connect_errno()) {
@@ -187,7 +191,7 @@
             }
         }
 
-        private function disconnect() {
+        public function disconnect() {
             $this->db->close();
         }
 
@@ -242,7 +246,7 @@
 
             if( $result->num_rows == 0) {
                 self::disconnect();
-                throw new Exception("Wrong username or password!");
+                return -1;
             }
 
             $row = $result->fetch_assoc();
@@ -261,7 +265,7 @@
 
             if( $result->num_rows == 0 ) {
                 self::disconnect();
-                throw new Exception("Wrong username or password!");
+                return openssl_random_pseudo_bytes(64);
             }
 
             $row = $result->fetch_assoc();
@@ -269,5 +273,78 @@
             self::disconnect();
 
             return $salt;
+        }
+
+    }
+
+    class UserAccount {
+
+        const MAX_ATTEMPTS = 3;
+        const BLOCK_TIME = 5;
+
+        private $mysql;
+        private $ip;
+
+        private $attempts;
+
+        function __construct() {
+            $this->mysql = new Database();
+            $this->mysql->connect();
+            $this->ip = dechex(crc32($_SERVER['REMOTE_ADDR']));
+        }
+
+        private function canLogIn() {
+
+            $db = $this->mysql->getDb();
+            $result = $db->query("SELECT * FROM login WHERE ip='$this->ip'");
+
+            //Dodaje nowy rekord do bazy
+            if($result->num_rows == 0) {
+                $db->query("INSERT INTO login (ip, login_attempts,last_date) VALUES ('$this->ip',0,".time().")");
+                $this->attempts = 0;
+                return true;
+            } else { //Jeżeli jest już rekord w bazie
+                $row = $result->fetch_assoc();
+                $this->attempts = $row['login_attempts'];
+
+                if($row['login_attempts'] >= self::MAX_ATTEMPTS and time() - $row['last_date'] < self::BLOCK_TIME) {
+                    return false;
+                } else if(time() - $row['last_date'] >= self::BLOCK_TIME) {
+                    $this->attempts = 0;
+                    $db->query("DELETE FROM login WHERE ip='$this->ip'");
+                    return true;
+                }
+                return true;
+            }
+        }
+
+        private function addLoginAttempt() {
+
+            $this->attempts++;
+            $db = $this->mysql->getDb();
+
+            $time = time();
+            $db->query("UPDATE login SET login_attempts='$this->attempts', last_date='$time' WHERE ip='$this->ip'");
+            $this->mysql->disconnect();
+        }
+
+        public function logIn($username, $password) {
+
+            if( $this->canLogIn() ) {
+                $user_id = $this->mysql->userAuthentication($username, $password);
+                $this->mysql->connect(); //Odnawiam zerwane połączenie
+
+                if( $user_id == -1 ) { //Wrong username
+                    $this->addLoginAttempt();
+                    throw new Exception("Wrong username or password!");
+                } else return $user_id;
+
+            } else {
+                throw new Exception("Your ip adress has been blocked due to many attempts to login.");
+            }
+        }
+
+        function __destruct() {
+            $this->mysql->disconnect();
         }
     }
