@@ -21,6 +21,13 @@ if (isset($_POST['submit'])) {
 
         $validatedData = $userData->getData();
 
+        include_once 'securimage/securimage.php';
+        $securimage = new Securimage();
+
+        if ($securimage->check($_POST['captcha_code']) == false) {
+            throw new Exception("Wrong captcha code!");
+        }
+
         $user_id = $database->insertUser($validatedData);
 
         $_SESSION['nickname'] = $userData->getNickname();

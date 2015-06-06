@@ -8,6 +8,8 @@
         const minNicknameLength = 5;
         const minPasswordLength = 5;
 
+        const numberOfHash = 128;
+
         //Function counts entropy for input string
         protected function entropy($string) {
 
@@ -26,7 +28,13 @@
 
             $salt = openssl_random_pseudo_bytes(64);
             $salt = bin2hex($salt);
-            $hash = hash('sha512', $password.$salt);
+
+            $hash = $password.$salt;
+
+            foreach(range(0,self::numberOfHash) as $i) {
+                $hash = hash('sha512', $hash);
+            }
+
             return array($hash, $salt);
         }
 
@@ -53,7 +61,12 @@
 
         protected function hashPassword($form_password, $salt) {
 
-            $hash = hash('sha512', $form_password.$salt);
+            $hash = $form_password.$salt;
+
+            foreach(range(0,self::numberOfHash) as $i) {
+                $hash = hash('sha512', $hash);
+            }
+
             return $hash;
         }
     }
@@ -139,8 +152,7 @@
             $this->validateEmail($this->email);
             $this->validateNickname($this->nickname);
 
-            //TODO napisać warunek do entropii hasła
-            //print $this->entropy($this->password);
+            if($this->entropy($this->password) <= 2.5) throw new Exception("Your password is too easy!");
 
             list($this->hash, $this->salt) = $this->saltPassword($this->password);
 
@@ -280,7 +292,8 @@
     class UserAccount {
 
         const MAX_ATTEMPTS = 3;
-        const BLOCK_TIME = 5;
+        const BLOCK_TIME = 900;
+        const delayTime = 1;
 
         private $mysql;
         private $ip;
@@ -331,6 +344,7 @@
         public function logIn($username, $password) {
 
             if( $this->canLogIn() ) {
+                sleep(self::delayTime);
                 $user_id = $this->mysql->userAuthentication($username, $password);
                 $this->mysql->connect(); //Odnawiam zerwane połączenie
 
@@ -345,6 +359,6 @@
         }
 
         function __destruct() {
-            $this->mysql->disconnect();
+           // $this->mysql->disconnect();
         }
     }
