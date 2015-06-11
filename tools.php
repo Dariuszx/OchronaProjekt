@@ -184,6 +184,18 @@
             $this->hash = $this->hashPassword($this->password, $this->salt);
         }
 
+        public function changePassword($password) {
+
+            if( strlen($password) > self::maxPasswordLength || strlen($password) < self::minPasswordLength) {
+                throw new Exception("Wrong length of password input field!");
+            }
+
+            if($this->entropy($password) <= 2.5) throw new Exception("Your new password is too easy!");
+
+            list($this->hash, $this->salt) = $this->saltPassword($password);
+
+        }
+
     }
 
     class Database {
@@ -250,6 +262,17 @@
             return true;
         }
 
+        public function updatePassword($user_id, $hash, $salt) {
+
+            self::connect();
+
+            print $hash;
+
+            $this->db->query("UPDATE users SET password='$hash', salt='$salt' WHERE user_id='$user_id'");
+
+            self::disconnect();
+        }
+
         public function userAuthentication($nickname, $hash) {
 
             self::connect();
@@ -287,6 +310,38 @@
             return $salt;
         }
 
+        public function addNote($user_id, $note) {
+
+            self::connect();
+
+            $this->db->query("INSERT INTO notes (user_id, note) VALUES ('$user_id', '$note')");
+
+            self::disconnect();
+        }
+
+        public function getNotes($user_id) {
+
+            self::connect();
+
+            $result = $this->db->query("SELECT * FROM notes WHERE user_id='$user_id' ORDER BY date_added DESC");
+            $rows = array();
+
+            for( $i=0; $i< $result->num_rows; $i++)
+                $rows[$i] = $result->fetch_assoc();
+
+            self::disconnect();
+
+            return $rows;
+        }
+
+        public function deleteNote($user_id, $note_id) {
+
+            self::connect();
+
+            @$this->db->query("DELETE FROM notes WHERE user_id='$user_id' AND note_id='$note_id'");
+
+            self::disconnect();
+        }
     }
 
     class UserAccount {
