@@ -7,8 +7,6 @@ include('header.html');
 
 include('menu.php');
 
-
-
 ?>
 
 <div class="tablica">

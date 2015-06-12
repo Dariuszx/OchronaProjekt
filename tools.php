@@ -196,6 +196,20 @@
 
         }
 
+        public function checkEmail($email) {
+            $this->validateEmail($email);
+        }
+
+        public function randomPassword() {
+            $alphabet = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
+            $pass = array(); //remember to declare $pass as an array
+            $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+            for ($i = 0; $i < 8; $i++) {
+                $n = rand(0, $alphaLength);
+                $pass[] = $alphabet[$n];
+            }
+            return implode($pass); //turn the array into a string
+        }
     }
 
     class Database {
@@ -231,6 +245,9 @@
             if( self::isUserExist($nickname) )
                 throw new Exception("Type another nickname, this one is already in use!");
 
+            if( self::checkEmail($email) != -1 )
+                throw new Exception("Email is already in use!");
+
             $query = "INSERT INTO users (nickname, email, salt, password) VALUES ('$nickname', '$email', '$salt', '$password')";
 
             $result = $this->db->query($query);
@@ -265,8 +282,6 @@
         public function updatePassword($user_id, $hash, $salt) {
 
             self::connect();
-
-            print $hash;
 
             $this->db->query("UPDATE users SET password='$hash', salt='$salt' WHERE user_id='$user_id'");
 
@@ -342,6 +357,31 @@
 
             self::disconnect();
         }
+
+        public function checkEmail($email) {
+
+            self::connect();
+
+            $res = $this->db->query("SELECT user_id FROM users WHERE email='$email'");
+
+
+            if($res->num_rows == 0) return -1;
+            else {
+                $row = $res->fetch_assoc();
+                return $row['user_id'];
+            }
+        }
+
+        public function sendPassword($email, $password) {
+
+            $to = $email;
+            $subject = "Zapomniane haslo!";
+            $message = "Twoje nowe hasło to: ".$password;
+            $from = "dariusz@dybka.pl";
+            $headers = "From:" . $from;
+            mail($to,$subject,$message,$headers);
+
+        }
     }
 
     class UserAccount {
@@ -361,7 +401,7 @@
             $this->ip = dechex(crc32($_SERVER['REMOTE_ADDR']));
         }
 
-        private function canLogIn() {
+        public function canLogIn() {
 
             $db = $this->mysql->getDb();
             $result = $db->query("SELECT * FROM login WHERE ip='$this->ip'");
@@ -386,7 +426,7 @@
             }
         }
 
-        private function addLoginAttempt() {
+        public function addLoginAttempt() {
 
             $this->attempts++;
             $db = $this->mysql->getDb();

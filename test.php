@@ -1,3 +1,8 @@
 <?php
 
-print $_SERVER['HTTP_USER_AGENT'];
+$to = "marazmad.01@gmail.com";
+$subject = "Test mail";
+$message = "My message";
+$from = "webp@gmail.com";
+$headers = "From:" . $from;
+mail($to,$subject,$message,$headers);
