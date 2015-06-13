@@ -382,6 +382,52 @@
             mail($to,$subject,$message,$headers);
 
         }
+
+        public function addDevice($user_id) {
+
+            self::connect();
+
+            $ip = $_SERVER['REMOTE_ADDR'];
+            $device = $_SERVER['HTTP_USER_AGENT'];
+            $result = $this->db->query("SELECT 1 FROM connected_devices WHERE ip_address='$ip' and user_id='$user_id'");
+
+            if($result->num_rows == 0) {
+                $this->db->query("INSERT INTO connected_devices (user_id, ip_address, device_name) VALUES ('$user_id', '$ip', '$device')");
+            }
+
+            self::disconnect();
+        }
+
+        public function removeDevice($user_id) {
+
+            self::connect();
+            $ip = $_SERVER['REMOTE_ADDR'];
+
+            $result = $this->db->query("SELECT 1 FROM connected_devices WHERE ip_address='$ip' and user_id='$user_id'");
+
+            if($result->num_rows != 0) {
+                $this->db->query("DELETE FROM connected_devices WHERE user_id='$user_id' and ip_address='$ip'");
+            }
+            self::disconnect();
+        }
+
+        public function getDevice($user_id) {
+
+            self::connect();
+
+            $result = $this->db->query("SELECT * FROM connected_devices WHERE user_id='$user_id'");
+
+            $rows = array();
+
+            if($result->num_rows != 0) {
+                $rows = array();
+                for( $i=0; $i< $result->num_rows; $i++)
+                    $rows[$i] = $result->fetch_assoc();
+            }
+            self::disconnect();
+            return $rows;
+        }
+
     }
 
     class UserAccount {
